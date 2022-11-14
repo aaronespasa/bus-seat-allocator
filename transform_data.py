@@ -5,7 +5,7 @@ import csv
 
 # Transformamos los datos de csv a una lista de listas, alumnos, una matriz que contiene 
 # los datos de cada alumno. 
-def transform_data(filename):
+def transform_data_sudents(filename):
     """ Transforma los datos de un archivo csv a una lista de listas.
     Devuelve Alumnos_curso1, Alumnos_curso2, Alumnos_mov_red, Alumnos_conf, Hermanos """
 
@@ -45,6 +45,56 @@ def transform_data(filename):
             Hermanos.append([alumnos[i][0],alumnos[i][4]])
 
     return Alumnos_curso1, Alumnos_curso2, Alumnos_mov_red, Alumnos_conf, Hermanos
+
+
+def trasform_data_bus(filename):
+    """ Transforma los datos de un archivo csv a una lista de listas.
+    Devuelve ventanilla, mov_red, asientos_curso1, asientos_curso2 """
+
+    with open(filename, 'r') as csvfile:
+        csvreader = csv.reader(csvfile)
+        fields = next(csvreader)
+        asientos = []
+        for bus in csvreader:
+            asientos.append(bus)
+
+    ventanilla = []
+    mov_red = []
+    asientos_curso1 = []
+    asientos_curso2 = []
+    # pasillo = []
+    
+
+    for i in range(0,len(asientos)):
+            if asientos[i][1] == 'v':
+                ventanilla.append(asientos[i][0])
+
+            if asientos[i][2] == 'r':
+                mov_red.append(asientos[i][0])
+
+            if int(asientos[i][0]) <= 16:
+                asientos_curso1.append(asientos[i][0])
+            else:
+                asientos_curso2.append(asientos[i][0])
+                
+                
+
+
+    return  ventanilla, mov_red, asientos_curso1, asientos_curso2
+
+
+print(trasform_data_bus('bus.csv'))
+
+
+
+
+
+
+
+
+
+
+
 
 """ print("Alumnos del curso 1: ", Alumnos_curso1)
 print("Alumnos del curso 2: ", Alumnos_curso2)
