@@ -185,7 +185,12 @@ class CSPCargaBUS:
         } """
         return self.asientos, asientos_curso1, asientos_curso2, asientos_curso1_M, asientos_curso2_M
 
-
+    def encontrar_indices(self, id): 
+        for fila in range(0,len(self.asientos)):
+            if id in self.asientos[fila]:
+                x=fila
+                y=self.asientos[fila].index(id)
+        return x, y
 
     def print_students_data(self):
         print(f"Alumnos del curso 1: {self.alumnos_categorizados['Alumnos_curso1']}",
@@ -234,77 +239,7 @@ class CSPCargaBUS:
          """
         
 
-"""         for fila in filas_curso1:
 
-
-
-        for asiento in asientos:
-            # Categorizarlos según si están al lado de la ventanilla
-            if asiento[Bus.VENTANILLA] == 'v':
-                ventanilla.append(asiento[0])
-
-            # Categorizarlos según su curso
-            # Los primeros 16 asientos son para el curso 1
-            # Los siguientes 16 asientos son para el curso 2
-            if int(asiento[Bus.ID]) <= 16:
-                
-                # Categorizarlos según si son para movilidad reducida
-                if asiento[Bus.MOV_RED] == 'r':
-                    mov_red_1.append(asiento[0])
-                else:
-                    asientos_curso1.append(asiento[0])
-
-            else:
-                
-                # Categorizarlos según si son para movilidad reducida
-                if asiento[Bus.MOV_RED] == 'r':
-                    mov_red_2.append(asiento[0])
-                else:
-                    asientos_curso2.append(asiento[0])
-
-        
-
-
-
-
-
-
-
-
-
-        f"Asientos de la ventanilla: {self.asientos_categorizados['ventanilla']}",
-            f"Asientos con movilidad reducida: {self.asientos_categorizados['mov_red']}",
-            f"Asientos del curso 1: {self.asientos_categorizados['asientos_curso1']}",
-            f"Asientos del curso 2: {self.asientos_categorizados['asientos_curso2']}", sep = "\n", end="\n\n"
-
-
-
-
-
-
-        def create_variables (self):
-        #! Variables of the problem
-        # we get the transformed data of students; They will be our variables
-        Alumnos_curso1, Alumnos_curso2, Alumnos_mov_red, Alumnos_conf, Hermanos = self.alumnos_categorizados.values()
-
-        # We obtain the domain of the variables
-        asientos_ventanilla, asientos_mov_red_1,asientos_mov_red_2, asientos_curso1, asientos_curso2= self.asientos_categorizados.values()
-        
-        for alumno in Alumnos_curso1:
-            if alumno in Alumnos_mov_red:
-                self.problem.addVariable(alumno, asientos_mov_red_1)
-            else:
-                self.problem.addVariable(alumno, asientos_curso1)
-
-        for alumno in Alumnos_curso2:
-            if alumno in Alumnos_mov_red:
-                self.problem.addVariable(alumno, asientos_mov_red_2)
-            else:
-                self.problem.addVariable(alumno, asientos_curso2)
-
-        return self.problem 
- """
-                
 
 if __name__ == "__main__":
     # Creamos el objeto de la clase
