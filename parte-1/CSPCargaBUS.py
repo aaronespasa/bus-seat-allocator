@@ -5,9 +5,9 @@ la identificación de los datos y su transformación para su posterior utilizaci
 import csv
 
 from enum import IntEnum
-from .bus import CAPACIDAD, ASIENTOS_FILA, FILAS_MOV_RED, FILAS_CURSO1, FILAS_CURSO2
+""" from . import CAPACIDAD, ASIENTOS_FILA, FILAS_MOV_RED, FILAS_CURSO1, FILAS_CURSO2 """
 
-from constraint import * 
+from constraint import *
 
 class CSPCargaBUS:
     def __init__(self, studentsCSVFilename:str, busCSVFilename:str):
@@ -25,11 +25,11 @@ class CSPCargaBUS:
         self.asientos = self.trasform_data_bus()['asientos']
         #self.asientos_categorizados = self.trasform_data_bus()
 
-        self.capacidad = CAPACIDAD
-        self.asientos_fila = ASIENTOS_FILA
-        self.filas_mov_red = FILAS_MOV_RED
-        self.filas_curso1 = FILAS_CURSO1
-        self.filas_curso2 = FILAS_CURSO2
+        self.capacidad = 32
+        self.asientos_fila = 4
+        self.filas_mov_red =[0,3,4]
+        self.filas_curso1 = [0,1,2,3]
+        self.filas_curso2 = [4,5,6,7]
         self.asientos = []
         
         self.problem = Problem()
@@ -155,7 +155,7 @@ class CSPCargaBUS:
             fila.append(count+1)
             fila.append(count+2)
             fila.append(count+3)
-            print(fila)
+            # print(fila)
             asientos.append(fila)
             count += 4
             asientos_curso1 = []
@@ -164,7 +164,7 @@ class CSPCargaBUS:
             asientos_curso2_M = []
 
         for fila in filas_curso1:
-            print(fila)
+            # print(fila)
             #? Añadimos los asientos del curso 1 a una lista incluyendo los de movilidad reducida
             for i in range ( 0, len(asientos[fila])):
                 asientos_curso1.append(asientos[fila][i])
@@ -195,10 +195,15 @@ class CSPCargaBUS:
         return  asientos_categorizados 
 
     def encontrar_indices(self, id): 
+        x, y = -1, -1
         for fila in range(len(self.asientos)):
             if id in self.asientos[fila]:
                 x=fila
                 y=self.asientos[fila].index(id)
+
+        if x == -1 or y == -1:
+            raise Exception(f"No se ha encontrado el asiento con id {id}")
+
         return x, y
 
     def print_students_data(self):
@@ -209,7 +214,8 @@ class CSPCargaBUS:
             f"Hermanos: {self.alumnos_categorizados['Hermanos']}", sep = "\n", end="\n\n")
 
     def print_bus_data(self):
-        print(self.trasform_data_bus())
+        print("Asientos categorizados:")
+        print(self.asientos_categorizados)
         
 
 # First of all we create the variables of the exercise
@@ -221,7 +227,7 @@ class CSPCargaBUS:
         Alumnos_curso1, Alumnos_curso2, Alumnos_mov_red, Alumnos_conf, Hermanos = self.alumnos_categorizados.values()
 
         # We obtain the domain of the variables
-        asientos,  asientos_mov_red_1, asientos_mov_red_2, asientos_curso1,  asientos_curso2= self.trasform_data_bus()
+        asientos,  asientos_mov_red_1, asientos_mov_red_2, asientos_curso1,  asientos_curso2= self.asientos_categorizados.values()
         
         hermanos_list = []
         for alumno in (Alumnos_curso1 + Alumnos_curso2):
@@ -229,28 +235,41 @@ class CSPCargaBUS:
                 brothers = [alumno, alumno2]
                 if brothers in Hermanos:
                     if (alumno2 in Alumnos_curso1 or alumno in Alumnos_curso1):
-                        self.problem.addVariable(alumno, asientos_curso1)
-                        self.problem.addVariable(alumno2, asientos_curso1)
-                    # Los hermanos mayores tienen que poder sentarse solo en el curso del pequeño
-                    # siempre que haya uno de primer curso
+                        if alumno in Alumnos_mov_red:
+                            self.problem.addVariable(alumno, asientos_mov_red_1)
+                            print(f"El alumno {alumno} puede sentarse en {asientos_mov_red_1}")
+                        else:
+                            self.problem.addVariable(alumno, asientos_curso1)
+                            print(f"El alumno {alumno} puede sentarse en {asientos_curso1}")
+                        if alumno2 in Alumnos_mov_red:
+                            self.problem.addVariable(alumno2, asientos_mov_red_1)
+                            print(f"El alumno {alumno} puede sentarse en {asientos_mov_red_1}")
+                        else:
+                            self.problem.addVariable(alumno2, asientos_curso1)
+                            print(f"El alumno {alumno} puede sentarse en {asientos_curso1}")
+                        # Los hermanos mayores tienen que poder sentarse solo en el curso del pequeño
+                        # siempre que haya uno de primer curso
                         hermanos_list.append(alumno)
                         hermanos_list.append(alumno2)
-        for alumno in Alumnos_curso1:             
-            if alumno in Alumnos_mov_red:
-                self.problem.addVariable(alumno, asientos_mov_red_1)
-            else:
-                if alumno not in hermanos_list:
+        for alumno in Alumnos_curso1:
+            if alumno not in hermanos_list:             
+                if alumno in Alumnos_mov_red:
+                    self.problem.addVariable(alumno, asientos_mov_red_1)
+                    print(f"El alumno {alumno} puede sentarse en {asientos_mov_red_1}")
+                else:
                     self.problem.addVariable(alumno, asientos_curso1)
-                
+                    print(f"El alumno {alumno} puede sentarse en {asientos_curso1}")
+                    
 
         for alumno in Alumnos_curso2:
-            if alumno in Alumnos_mov_red:
-                self.problem.addVariable(alumno, asientos_mov_red_2)
-            else:
-                if alumno not in hermanos_list:
+            if alumno not in hermanos_list:             
+                if alumno in Alumnos_mov_red:
+                    self.problem.addVariable(alumno, asientos_mov_red_2)
+                    print(f"El alumno {alumno} puede sentarse en {asientos_mov_red_2}")
+                else:
                     self.problem.addVariable(alumno, asientos_curso2)
+                    print(f"El alumno {alumno} puede sentarse en {asientos_curso2}")
 
-        return self.problem
 
 
 #! Restrictions of the problem -----------------------------------------------------------------------------------------------------------
@@ -274,7 +293,8 @@ class CSPCargaBUS:
                 posibles_hermanos2.append(alumno1)
                 if alumno1 != alumno2:
                     if posibles_hermanos1 in Hermanos or posibles_hermanos2 in Hermanos:
-                        self.problem.addConstraint(self.hermanos(), (alumno1, alumno2))
+                        #todo: revisar que no se repitan las restricciones
+                        self.problem.addConstraint(self.hermanos_1_2, (alumno1, alumno2))
                     else:
                         self.problem.addConstraint( self.conflictive_conflictive , (alumno1, alumno2))
         for alumno1 in Alumnos_curso1:
@@ -287,7 +307,7 @@ class CSPCargaBUS:
                 posibles_hermanos2.append(alumno1)
                 if alumno1 != alumno2:
                     if posibles_hermanos1 in Hermanos or posibles_hermanos2 in Hermanos:
-                        self.problem.addConstraint(self.hermanos_1_2(), (alumno1, alumno2))
+                        self.problem.addConstraint(self.hermanos_1_2, (alumno1, alumno2))
                     
 
         for alumno1 in Alumnos_conf:
@@ -295,13 +315,16 @@ class CSPCargaBUS:
                 self.problem.addConstraint( self.conflictive_movred , (alumno1, alumno2))
 
         
-        return True 
+        
+
+        # mov reducida- resto
 
     def conflictive_conflictive (self,alumno1, alumno2):
-        fila_alumno1 = self.encontrar_indices(alumno1)[0]
-        columna_alumno1 = self.encontrar_indices(alumno1)[1]
-        fila_alumno2 = self.encontrar_indices(alumno2)[0]
-        columna_alumno2 = self.encontrar_indices(alumno2)[1]
+        # print(f"restriccion conflictivo-conflictivo: {alumno1} y {alumno2}")
+        fila_alumno1,columna_alumno1 = self.encontrar_indices(alumno1)
+        
+        fila_alumno2,columna_alumno2 = self.encontrar_indices(alumno2)
+        
 
 
         if abs(fila_alumno1-fila_alumno2) >1 and abs(columna_alumno1-columna_alumno2) >1:
@@ -310,11 +333,8 @@ class CSPCargaBUS:
             return False
 
     def conflictive_movred (self,alumno1, alumno2):
-        fila_alumno1 = self.encontrar_indices(alumno1)[0]
-        columna_alumno1 = self.encontrar_indices(alumno1)[1]
-        fila_alumno2 = self.encontrar_indices(alumno2)[0]
-        columna_alumno2 = self.encontrar_indices(alumno2)[1]
-
+        fila_alumno1,columna_alumno1 = self.encontrar_indices(alumno1)
+        fila_alumno2,columna_alumno2 = self.encontrar_indices(alumno2)
 
         if abs(fila_alumno1-fila_alumno2) >1 and abs(columna_alumno1-columna_alumno2) >1:
             return True 
@@ -322,10 +342,10 @@ class CSPCargaBUS:
             return False
 
     def movred  ( self,alumno1, alumno2 ): 
-        fila_alumno1 = self.encontrar_indices(alumno1)[0]
-        columna_alumno1 = self.encontrar_indices(alumno1)[1]
-        fila_alumno2 = self.encontrar_indices(alumno2)[0]
-        columna_alumno2 = self.encontrar_indices(alumno2)[1]
+        fila_alumno1,columna_alumno1 = self.encontrar_indices(alumno1)
+        
+        fila_alumno2, columna_alumno2 = self.encontrar_indices(alumno2)
+        
         media_fila = self.asientos_fila/2
         #TODO: incluir ambos en la definicion de la clase
         right_column = []
@@ -337,6 +357,8 @@ class CSPCargaBUS:
                 right_column.append(i)
         #TODO: incluir hasta aqui en la def 
         if fila_alumno1 in left_column and fila_alumno2 in right_column:
+            return True
+        elif fila_alumno1 in right_column and fila_alumno2 in left_column:
             return True
         else: 
             # En el modelo que nos dan no haría falta, pero edsta way para generalizarlo 
@@ -350,10 +372,10 @@ class CSPCargaBUS:
     def hermanos_1_2 (self, alumno1, alumno2):
         """ EL mayor debe estar en la posición del pasillo """
          # Para usarlo para mas asientos habría que darle una vuelta 
-        fila_alumno1 = self.encontrar_indices(alumno1)[0]
-        columna_alumno1 = self.encontrar_indices(alumno1)[1]
-        fila_alumno2 = self.encontrar_indices(alumno2)[0]
-        columna_alumno2 = self.encontrar_indices(alumno2)[1]
+        fila_alumno1, columna_alumno1 = self.encontrar_indices(alumno1)
+         
+        fila_alumno2, columna_alumno2 = self.encontrar_indices(alumno2)
+        
         media_fila = self.asientos_fila/2
         #TODO: incluir ambos en la definicion de la clase
         right_column = []
@@ -401,7 +423,9 @@ class CSPCargaBUS:
 if __name__ == "__main__":
     # Creamos el objeto de la clase
     cspCargaBus = CSPCargaBUS("alumnos.csv", "bus.csv")
-    cspCargaBus.print_students_data()
-    cspCargaBus.print_bus_data()
-    cspCargaBus.conflictive_conflictive()
-    print(cspCargaBus.problem.getSolution())
+    # cspCargaBus.print_students_data()
+    # cspCargaBus.print_bus_data()
+    #cspCargaBus.conflictive_conflictive()
+    cspCargaBus.create_variables()
+    cspCargaBus.create_restriction()
+    # print(cspCargaBus.problem.getSolution())
