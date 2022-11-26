@@ -32,9 +32,11 @@ def parse_arguments(cmd_args: list) -> tuple:
     if not alumnos_path.endswith(".prob"):
         raise ValueError("The file name should end with .prob.\n" + INCORRECT_ARGUMENTS_MSG)
 
+    filename = alumnos_path.split("/")[-1][:-5]
+
     heuristic_name = cmd_args[1]
 
     if heuristic_name not in HEURISTIC_NAMES:
         raise ValueError("The heuristic name is not correct.\n" + INCORRECT_ARGUMENTS_MSG)
 
-    return alumnos_path, heuristic_name
+    return filename, alumnos_path, heuristic_name
