@@ -170,12 +170,13 @@ class ASTARColaBus:
         and checking that the node has not been added to the queue yet.
         """
         neighbors = self.get_neighbors(node)
+        self.__open_list = []
+        self.__nodes[node] = True
 
         for neighbor in neighbors:
             if neighbor not in self.__state:
-                # TODO: This will add all the nodes to the open_list!!! -> Fix it
                 self.__open_list.append(neighbor)
-                self.__nodes[neighbor] = True # mark the node as visited
+                # self.__nodes[neighbor] = True # mark the node as visited
 
     def has_finished(self) -> bool:
         """Checks if the algorithm has finished."""
@@ -183,7 +184,7 @@ class ASTARColaBus:
 
     def get_statistics(self, time_diff_in_ms:int, expanded_nodes:int) -> str:
         """Gets the statistics of the algorithm."""
-        statistics_str = f"Tiempo total: {time_diff_in_ms}\n"
+        statistics_str = f"Tiempo total: {time_diff_in_ms:.3f} ms\n"
         statistics_str += f"Coste total: {self.get_cost_of_state(self.__state)}\n"
         statistics_str += f"Longitud del plan: {len(self.__state)}\n"
         statistics_str += f"Nodos expandidos: {expanded_nodes}"
@@ -216,7 +217,7 @@ class ASTARColaBus:
         state_types = []
         for studentid in self.__state:
             state_types.append(self.__alumnos_tuples[studentid][StudentTuple.TYPE].value)
-        return str(state_types)
+        return f"IDs in queue: {self.__state}\nTypes in queue: {state_types}"
 
 if __name__ == "__main__":
     # Parse arguments and get the position of the students as a dictionary called "alumnos"
@@ -229,9 +230,6 @@ if __name__ == "__main__":
     # Create the ASTARColaBus object, run it and save the final state
     astar = ASTARColaBus(alumnos, alumnos_count, heuristic_name)
     statistics = astar.run()
-    print("Final state:")
-    print(astar)
-    print("Statistics:")
-    print(statistics)
+    print(astar, statistics, sep="\n\n")
     # save_state(astar.get_state, alumnos, filename, heuristic_name)
     # save_statistics(statistics, filename, heuristic_name)
