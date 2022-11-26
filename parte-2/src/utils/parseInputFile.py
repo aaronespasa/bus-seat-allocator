@@ -54,7 +54,7 @@ def parse_alumnos_input(file_content:str) -> tuple:
         
         # Add the student to the dictionary
         if id not in alumnos:
-            alumnos[id] = (student_type, seat_number)
+            alumnos[id] = (student_type, int(seat_number))
         
         alumnos_count += 1
 
