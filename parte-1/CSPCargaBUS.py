@@ -20,18 +20,18 @@ class CSPCargaBUS:
         self.ALUMNOS_CSV_PATH = self.TESTS_FOLDER + studentsCSVFilename
         self.BUS_CSV_PATH = self.TESTS_FOLDER + busCSVFilename
 
-        self.alumnos_categorizados = self.transform_data_students()
-        self.asientos_categorizados = self.trasform_data_bus()
-        self.asientos = self.trasform_data_bus()['asientos']
-        #self.asientos_categorizados = self.trasform_data_bus()
-
         self.capacidad = 32
         self.asientos_fila = 4
         self.filas_mov_red =[0,3,4]
         self.filas_curso1 = [0,1,2,3]
         self.filas_curso2 = [4,5,6,7]
         self.asientos = []
-        
+
+        self.alumnos_categorizados = self.transform_data_students()
+        self.asientos_categorizados = self.trasform_data_bus()
+        #self.asientos = self.trasform_data_bus()['asientos']
+        #self.asientos_categorizados = self.trasform_data_bus()
+
         self.problem = Problem()
 
     @staticmethod
@@ -128,14 +128,14 @@ class CSPCargaBUS:
         #! -Los asientos para el curso 2 estarán en las 4 últimas filas de la matriz;
 
 
-        """ busCSVFields, asientos = self.csv_to_list(self.BUS_CSV_PATH)
+        # busCSVFields, asientos = self.csv_to_list(self.BUS_CSV_PATH)
 
-        class infoBus(IntEnum):
-            capacidad = busCSVFields.index("capacidad")
-            asientos_fila = busCSVFields.index("asientos_fila")
-            filas_mov_red = busCSVFields.index("movilidad_reducida")
-            filas_curso1 = busCSVFields.index("curso1")
-            filas_curso2 = busCSVFields.index("curso2") """
+        # class infoBus(IntEnum):
+        #     capacidad = busCSVFields.index("capacidad")
+        #     asientos_fila = busCSVFields.index("asientos_fila")
+        #     filas_mov_red = busCSVFields.index("movilidad_reducida")
+        #     filas_curso1 = busCSVFields.index("curso1")
+        #     filas_curso2 = busCSVFields.index("curso2")
 
         # Grupos en los que categorizaremos a los asientos
         #! Todo esto tiene que ir dentro de el nuevo archivo de configuración de bus 
@@ -144,8 +144,6 @@ class CSPCargaBUS:
         filas_mov_red = [0,3,4]
         filas_curso1 = [0,1,2,3]
         filas_curso2 = [4,5,6,7]
-        asientos = []
-        
         
         count = 1
         
@@ -155,8 +153,7 @@ class CSPCargaBUS:
             fila.append(count+1)
             fila.append(count+2)
             fila.append(count+3)
-            # print(fila)
-            asientos.append(fila)
+            self.asientos.append(fila)
             count += 4
             asientos_curso1 = []
             asientos_curso2= []
@@ -166,26 +163,26 @@ class CSPCargaBUS:
         for fila in filas_curso1:
             # print(fila)
             #? Añadimos los asientos del curso 1 a una lista incluyendo los de movilidad reducida
-            for i in range ( 0, len(asientos[fila])):
-                asientos_curso1.append(asientos[fila][i])
+            for i in range ( 0, len(self.asientos[fila])):
+                asientos_curso1.append(self.asientos[fila][i])
                 #? Añadimos los asientos de movilidad reducida del curso 1 a una lista
                 if fila in filas_mov_red: 
-                    asientos_curso1_M.append(asientos[fila][i])
+                    asientos_curso1_M.append(self.asientos[fila][i])
 
         for fila in filas_curso2:
             
             #? Añadimos los asientos del curso 2 a una lista (incluyendo los de mov reducida)
-            for i in range ( 0, len(asientos[fila])):
-                asientos_curso2.append(asientos[fila][i])
+            for i in range ( 0, len(self.asientos[fila])):
+                asientos_curso2.append(self.asientos[fila][i])
                 #? Añadimos los asientos de movilidad reducida del curso 2 a una lista
                 if fila in filas_mov_red: 
-                    asientos_curso2_M.append(asientos[fila][i])
+                    asientos_curso2_M.append(self.asientos[fila][i])
 
         #* Los asientos en ventanilla se identificarán con los indices minimo y maximo de cada fila 
 
 
         asientos_categorizados = {
-            "asientos": asientos,
+            "asientos": self.asientos,
             "asientos_curso1": asientos_curso1,
             "asientos_curso2": asientos_curso2,
             "mov_red_1": asientos_curso1_M,
@@ -196,8 +193,13 @@ class CSPCargaBUS:
 
     def encontrar_indices(self, id): 
         x, y = -1, -1
+        """ print("he empezado")
+        print(self.asientos)
+        print(len(self.asientos)) """
         for fila in range(len(self.asientos)):
+            """ print(f"fila: {fila}") """
             if id in self.asientos[fila]:
+                #print(f"asiento: {self.asientos[fila]}")
                 x=fila
                 y=self.asientos[fila].index(id)
 
@@ -243,14 +245,15 @@ class CSPCargaBUS:
                             print(f"El alumno {alumno} puede sentarse en {asientos_curso1}")
                         if alumno2 in Alumnos_mov_red:
                             self.problem.addVariable(alumno2, asientos_mov_red_1)
-                            print(f"El alumno {alumno} puede sentarse en {asientos_mov_red_1}")
+                            print(f"El alumno {alumno2} puede sentarse en {asientos_mov_red_1}")
                         else:
                             self.problem.addVariable(alumno2, asientos_curso1)
-                            print(f"El alumno {alumno} puede sentarse en {asientos_curso1}")
+                            print(f"El alumno {alumno2} puede sentarse en {asientos_curso1}")
                         # Los hermanos mayores tienen que poder sentarse solo en el curso del pequeño
                         # siempre que haya uno de primer curso
                         hermanos_list.append(alumno)
                         hermanos_list.append(alumno2)
+        print(hermanos_list)
         for alumno in Alumnos_curso1:
             if alumno not in hermanos_list:             
                 if alumno in Alumnos_mov_red:
@@ -282,6 +285,7 @@ class CSPCargaBUS:
 
         # We obtain the domain of the variables
         asientos, asientos_curso1, asientos_curso2 ,asientos_mov_red_1 ,asientos_mov_red_2 = self.asientos_categorizados.values()
+        print(f"alumos conf {Alumnos_conf}")
 
         for alumno1 in Alumnos_conf:
             for alumno2 in Alumnos_conf:
@@ -292,10 +296,13 @@ class CSPCargaBUS:
                 posibles_hermanos2.append(alumno2)
                 posibles_hermanos2.append(alumno1)
                 if alumno1 != alumno2:
+                    print(f)
                     if posibles_hermanos1 in Hermanos or posibles_hermanos2 in Hermanos:
+                        print(f"Los alumnos {alumno1} y {alumno2} son hermanos")
                         #todo: revisar que no se repitan las restricciones
                         self.problem.addConstraint(self.hermanos_1_2, (alumno1, alumno2))
                     else:
+                        print(f"Los alumnos {alumno1} y {alumno2} no son hermanos")
                         self.problem.addConstraint( self.conflictive_conflictive , (alumno1, alumno2))
         for alumno1 in Alumnos_curso1:
             for alumno2 in Alumnos_curso2:
@@ -307,6 +314,7 @@ class CSPCargaBUS:
                 posibles_hermanos2.append(alumno1)
                 if alumno1 != alumno2:
                     if posibles_hermanos1 in Hermanos or posibles_hermanos2 in Hermanos:
+                        print(f"Los alumnos {alumno1} y {alumno2} son hermanos")
                         self.problem.addConstraint(self.hermanos_1_2, (alumno1, alumno2))
                     
 
@@ -320,7 +328,8 @@ class CSPCargaBUS:
         # mov reducida- resto
 
     def conflictive_conflictive (self,alumno1, alumno2):
-        # print(f"restriccion conflictivo-conflictivo: {alumno1} y {alumno2}")
+        #print(f"restriccion conflictivo-conflictivo: {alumno1} y {alumno2}")
+        
         fila_alumno1,columna_alumno1 = self.encontrar_indices(alumno1)
         
         fila_alumno2,columna_alumno2 = self.encontrar_indices(alumno2)
@@ -328,7 +337,9 @@ class CSPCargaBUS:
 
 
         if abs(fila_alumno1-fila_alumno2) >1 and abs(columna_alumno1-columna_alumno2) >1:
+            #print(f"Los alumnos {alumno1} y {alumno2} okay")
             return True 
+
         else:
             return False
 
@@ -337,6 +348,7 @@ class CSPCargaBUS:
         fila_alumno2,columna_alumno2 = self.encontrar_indices(alumno2)
 
         if abs(fila_alumno1-fila_alumno2) >1 and abs(columna_alumno1-columna_alumno2) >1:
+            print(f"Los alumnos {alumno1} y {alumno2} okay con_mov")
             return True 
         else:
             return False
@@ -357,13 +369,16 @@ class CSPCargaBUS:
                 right_column.append(i)
         #TODO: incluir hasta aqui en la def 
         if fila_alumno1 in left_column and fila_alumno2 in right_column:
+            print(f"Los alumnos {alumno1} y {alumno2} okay movred")
             return True
         elif fila_alumno1 in right_column and fila_alumno2 in left_column:
+            print(f"Los alumnos {alumno1} y {alumno2} okay movred")
             return True
         else: 
             # En el modelo que nos dan no haría falta, pero edsta way para generalizarlo 
             # para otros buses con más asientos por fila
             if abs(fila_alumno1-fila_alumno2) >=2: 
+                print(f"Los alumnos {alumno1} y {alumno2} okay movred no tiene que salir")
                 return True
             else:
                 return False
@@ -396,36 +411,30 @@ class CSPCargaBUS:
             elif (columna_alumno1 in left_column and columna_alumno2 in left_column) :
                 if columna_alumno2 > columna_alumno1:
                     #esto significaria que el mayor esta en el pasillo 
+                    print(f"el mayor esta donde debe estar {alumno1} y {alumno2}")
                     return True
                 else: 
+                    print(f"el mayor no esta donde debe estar {alumno1} y {alumno2}")
                     return False
             else:
                 if columna_alumno1 > columna_alumno2:
                     #esto significaria que el mayor esta en el pasillo 
+                    print(f"el mayor esta donde debe estar {alumno1} y {alumno2}")
                     return True
                 else: 
+                    print(f"el mayor no esta donde debe estar {alumno1} y {alumno2}")
                     return False
         
-        
-
-
-        #TODO: incluir la funcion para hermanos exceptuando a mov reducida. 
-        #TODO: tiene que hacer que se sienten al lado y que el mayor vaya en pasillo. 
-        #TODO: tener en cuenta que los dominios ya acotan que esten en la mitad 
-        #TODO: correcta. 
-
-
-
-        
-
-
+#TODO: incluir la funcion para hermanos exceptuando a mov reducida. 
+#TODO: tiene que hacer que se sienten al lado y que el mayor vaya en pasillo. 
+#TODO: tener en cuenta que los dominios ya acotan que esten en la mitad 
+#TODO: correcta. 
 
 if __name__ == "__main__":
     # Creamos el objeto de la clase
     cspCargaBus = CSPCargaBUS("alumnos.csv", "bus.csv")
-    # cspCargaBus.print_students_data()
-    # cspCargaBus.print_bus_data()
-    #cspCargaBus.conflictive_conflictive()
+    cspCargaBus.print_students_data()
+    cspCargaBus.print_bus_data()
     cspCargaBus.create_variables()
     cspCargaBus.create_restriction()
-    # print(cspCargaBus.problem.getSolution())
+    print(f"my solution is {cspCargaBus.problem.getSolution()}")
