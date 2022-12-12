@@ -91,6 +91,10 @@ class ASTARColaBus:
         return self.__alumnos_tuples[node][StudentTuple.TYPE] == StudentTypes.REDUCED_MOBILITY or \
                self.__alumnos_tuples[node][StudentTuple.TYPE] == StudentTypes.CONFLICTIVE_REDUCED_MOBILITY
 
+    def get_seat_number(self, node:str) -> int:
+        """Gets the seat number of the given node."""
+        return self.__alumnos_tuples[node][StudentTuple.SEAT_NUMBER]
+
     def get_cost_of_state(self, state:list) -> int:
         """Gets the cost of the given state."""
         cost = 0
@@ -119,9 +123,16 @@ class ASTARColaBus:
             if i - 1 >= 0 and self.is_conflictive(state[i - 1]):
                 state_cost *= 2
 
+            # check if the previous students were conflictive
+            for j in range(i): 
+                seat_j, seat_i = self.get_seat_number(state[j]), self.get_seat_number(state[i])
+                if self.is_conflictive(state[j]) and seat_j < seat_i:
+                    state_cost *= 2
+
             cost += state_cost
             # cost += state_cost * conflictive_duplication
-        
+
+
         return cost
 
     def get_cost_of_adding(self, node:str) -> int:
@@ -215,9 +226,11 @@ class ASTARColaBus:
     def __str__(self) -> str:
         """Returns the types of the students in the queue."""
         state_types = []
+        seat_numbers = []
         for studentid in self.__state:
             state_types.append(self.__alumnos_tuples[studentid][StudentTuple.TYPE].value)
-        return f"IDs in queue: {self.__state}\nTypes in queue: {state_types}"
+            seat_numbers.append(self.__alumnos_tuples[studentid][StudentTuple.SEAT_NUMBER])
+        return f"IDs in queue: {self.__state}\nTypes in queue: {state_types}\nSeat numbers: {seat_numbers}"
 
 if __name__ == "__main__":
     # Parse arguments and get the position of the students as a dictionary called "alumnos"

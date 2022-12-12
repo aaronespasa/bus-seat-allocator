@@ -7,6 +7,9 @@ venv/
 # Visual Studio Code files
 .vscode/
 
+# PyCharm files
+.idea/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
