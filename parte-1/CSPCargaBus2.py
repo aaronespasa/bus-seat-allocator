@@ -47,6 +47,7 @@ class CSPCargaBUS:
         self.Alumnos_mov_red = []
         self.Alumnos_conf = []
         self.Hermanos = []
+        self.correct_variables = {}
         
         #?Llamadas a las funciones básicas 
         self.alumnos_categorizados = self.transform_data_students()
@@ -87,6 +88,10 @@ class CSPCargaBUS:
         """
         alumnosCSVFields, alumnos = self.csv_to_list(self.ALUMNOS_CSV_PATH)
 
+        # Para que el output este en el formato correcto al finalizar la ejecución, 
+        # creamos un diccionario con el id  como indice que devuelva el nombre de la 
+        # variable con el formato correcto 
+
         class Alumno(IntEnum):
             ID = alumnosCSVFields.index("id")
             CURSO = alumnosCSVFields.index("Ciclo")
@@ -117,7 +122,19 @@ class CSPCargaBUS:
                 aux_hermanos.append(alumno[Alumno.ID])
                 aux_hermanos.append(alumno[Alumno.ID_HERMANO])
                 self.Hermanos.append([alumno[Alumno.ID],alumno[Alumno.ID_HERMANO]])
-    
+
+            if alumno[Alumno.ID] in self.Alumnos_conf:
+                if alumno[Alumno.ID] in self.Alumnos_mov_red:
+                    self.correct_variables[str(alumno[Alumno.ID])] = f"{alumno[Alumno.ID]}CR"
+                else: 
+                    self.correct_variables[str(alumno[Alumno.ID])] = f"{alumno[Alumno.ID]}CX"
+            else:
+                if alumno[Alumno.ID] in self.Alumnos_mov_red:
+                    self.correct_variables[str(alumno[Alumno.ID])] = f"{alumno[Alumno.ID]}XR"
+                else: 
+                    self.correct_variables[str(alumno[Alumno.ID])] = f"{alumno[Alumno.ID]}XX"
+        print (f"i am the correct {self.correct_variables}")
+        # print(self.Alumnos_curso1)
         # print(self.Hermanos)
 
     def trasform_data_bus(self):
@@ -394,6 +411,7 @@ class CSPCargaBUS:
         return x, y
 
     
+    
     def print_bus_data(self):
         """Imprimir los datos de los buses"""
 
@@ -409,24 +427,39 @@ class CSPCargaBUS:
             f"Alumnos con movilidad reducida: {self.Alumnos_mov_red}",
             f"Alumnos conflictivos: {self.Alumnos_conf}",
             f"self.Hermanos: {self.Hermanos}", sep = "\n", end="\n\n")
+    def transform_output(self, output):
+        """Transformar la salida del solver a un formato más legible"""
+        transformed_output = {}
+        for alumno in self.Alumnos_curso1 + self.Alumnos_curso2:
+            Asiento_para_alumno = output[alumno]
+            print(f"nueva funcion: Alumno {alumno} -> Asiento {Asiento_para_alumno}")
+            transformed_output[self.correct_variables[alumno]] = Asiento_para_alumno
 
-def print_solution(solution):
-    """Imprimir la solución"""
-    if solution is None:
-        print("\nNo hay solución")
-    else:
-        print("\nEl problema tiene al menos una solución")
-        print("Solución:")
-        for student_id, seat_number in solution.items():
-            print(f"Alumno {student_id} se sienta en el asiento {seat_number}")
-    print("\n")
+        return transformed_output
+    def print_solution(self,solution):
+        """Imprimir la solución"""
+        if solution is None:
+            print("\nNo hay solución")
+        else:
+            print("\nEl problema tiene al menos una solución")
+            print("Solución:")
+            for student_id, seat_number in solution.items():
+                print(f"Alumno {student_id} se sienta en el asiento {seat_number}")
+        printable = self.transform_output(solution)
+        print(f"El formato de la solucion es {printable}")
+        print("\n")
+        # we export the printable solution to .prob file 
+        with open('alumnos.prob', 'w') as f:
+            f.write(str(printable))
+        print("La solucion se ha exportado a solution.prob")
+
 
 if __name__ == "__main__":
     # Creamos el objeto de la clase
     cspCargaBus = CSPCargaBUS("alumnos.csv", "bus.csv")
     # cspCargaBus.print_students_data() 
     # cspCargaBus.print_bus_data()          
-    print_solution(cspCargaBus.problem.getSolution())
+    cspCargaBus.print_solution(cspCargaBus.problem.getSolution())
 
 # First of all we create the variables of the exercise
 # All of them are represented in the transformed data. 

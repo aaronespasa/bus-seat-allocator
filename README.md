@@ -8,7 +8,7 @@ $ git clone https://github.com/aaronespasa/practica2-100451339-100451273.git
 
 🌲 Create a virtual environment and activate it (make sure you're using Python 3.8):
 ```sh
-$ python3 -m venv ./venv
+$ python -m venv ./venv
 ```
 - To activate it in a machine using unix (MacOS or Linux):
 ```sh
