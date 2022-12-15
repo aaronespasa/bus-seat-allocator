@@ -76,17 +76,18 @@ class ASTARColaBus:
 
         value = 0
         for student_id in temporal_state:
-            is_conflictive = self.__alumnos_tuples[student_id][StudentTuple.TYPE] == StudentTypes.CONFLICTIVE
             weight = 0
 
-            if is_conflictive:
+            if self.__alumnos_tuples[student_id][StudentTuple.TYPE] == StudentTypes.CONFLICTIVE:
                 weight = 5
-            elif self.has_reduced_mobility(student_id):
+            elif self.__alumnos_tuples[student_id][StudentTuple.TYPE] == StudentTypes.REDUCED_MOBILITY:
+                weight = 1
+            elif self.__alumnos_tuples[student_id][StudentTuple.TYPE] == StudentTypes.CONFLICTIVE_REDUCED_MOBILITY:
                 weight = 2
             else: # not conflictive and not reduced mobility
                 weight = 3
             
-            # multiply by the number of students in order to adapt the A* algorith for longer queues
+            # multiply by the number of students in order to adapt the A* algorithm for longer queues
             value += weight * len(total_students)
 
         return value
