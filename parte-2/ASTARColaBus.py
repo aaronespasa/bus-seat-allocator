@@ -272,6 +272,7 @@ if __name__ == "__main__":
     # Create the ASTARColaBus object, run it and save the final state
     astar = ASTARColaBus(alumnos, alumnos_count, heuristic_name)
     statistics = astar.run()
-    print(astar, statistics, sep="\n\n")
-    # save_state(astar.get_state, alumnos, filename, heuristic_name)
-    # save_statistics(statistics, filename, heuristic_name)
+    # print(astar, statistics, sep="\n\n")
+    print(astar)
+    save_state(astar.get_state, alumnos, filename, heuristic_name)
+    save_statistics(statistics, filename, heuristic_name)
