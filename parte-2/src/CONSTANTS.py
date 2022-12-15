@@ -1,1 +1,1 @@
-HEURISTIC_NAMES = ['1']
+HEURISTIC_NAMES = ['1', '2']

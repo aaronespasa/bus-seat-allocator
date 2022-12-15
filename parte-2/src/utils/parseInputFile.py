@@ -40,7 +40,8 @@ def parse_alumnos_input(file_content:str) -> tuple:
     alumnos_count = 0
     for alumno in file_content:
         name, seat_number = alumno.split(":")
-        id, conflictive, reduced_mobility = name
+        id = name[:-2]
+        conflictive, reduced_mobility = name[-2:]
         
         # Get the student type
         if conflictive == "C" and reduced_mobility == "R":

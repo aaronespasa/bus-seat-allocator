@@ -6,7 +6,8 @@ The correct way to run the program is:
     $ python ASTARColaBus.py <alumnos_path> <heuristic_name>
 
 Make sure that the heuristic name is one of the following:
-    - 1: Count the number of students that are not in the bus.
+    - 1: Count the number of students that are not in the queue.
+    - 2: Count the number of students that are not in the queue and add weights depending on the type of student.
 
 Example:
     $ python ASTARColaBus.py ./ASTAR-tests/alumnos.prob 1
@@ -22,7 +23,8 @@ def parse_arguments(cmd_args: list) -> tuple:
         - The name of the heuristic to be used.
     
     Possible heuristic names are:
-        - 1: Count the number of students that are not in the bus.
+           - 1: Count the number of students that are not in the queue.
+           - 2: Count the number of students that are not in the queue and add weights depending on the type of student.
     """
     if len(cmd_args) != 2:
         raise ValueError("The number of arguments is not correct.\n" + INCORRECT_ARGUMENTS_MSG)

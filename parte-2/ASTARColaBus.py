@@ -64,15 +64,37 @@ class ASTARColaBus:
         self.__nodes[0] = True
         return self.__nodes[0]
 
-    def heuristic_count_queue_spaces(self) -> int:
+    def heuristic_count_queue_spaces(self, node:str) -> int:
         """Counts the number of empty spaces in the queue when adding a new node."""
         # return self.__state.count(self.__empty_element) - 1
-        return self.__queue_length - len(self.__state) - 1
+
+        return self.__queue_length - len(self.__state)
+    
+    def heuristic_spaces_with_weights(self, node:str) -> int:
+        """Ponderate the students that are left and sum them all."""
+        total_students = self.__alumnos_tuples.keys()
+        # create a list that substracts the elements from self.__state from total_students
+        temporal_state = [node] + [x for x in total_students if x not in self.__state]
+
+        value = 0
+        for student_id in temporal_state:
+            if self.__alumnos_tuples[student_id][StudentTuple.TYPE] == StudentTypes.CONFLICTIVE:
+                    value += 5 * len(total_students)
+            elif self.__alumnos_tuples[student_id][StudentTuple.TYPE] == StudentTypes.REDUCED_MOBILITY or \
+                    self.__alumnos_tuples[student_id][StudentTuple.TYPE] == StudentTypes.CONFLICTIVE_REDUCED_MOBILITY:
+                    value += 2 
+            elif self.__alumnos_tuples[student_id][StudentTuple.TYPE] == StudentTypes.NORMAL:
+                value += 3 * len(total_students)
+
+        return value
+
 
     def get_heuristic(self, heuristic_name:str) -> callable:
         """Gets the heuristic function to use."""
         if heuristic_name == "1":
             return self.heuristic_count_queue_spaces
+        elif heuristic_name == "2":
+            return self.heuristic_spaces_with_weights
         else:
             raise Exception("Invalid heuristic name")
 
@@ -131,8 +153,7 @@ class ASTARColaBus:
 
             cost += state_cost
             # cost += state_cost * conflictive_duplication
-
-
+        
         return cost
 
     def get_cost_of_adding(self, node:str) -> int:
@@ -143,14 +164,21 @@ class ASTARColaBus:
     
     def compare_value_h_and_g(self, first_node:str, second_node:str) -> bool:
         """Compares the value of the heuristic + the cost of two give nodes."""
-        first_node_value = self.get_cost_of_adding(first_node) + self.__get_heuristic_value()
-        second_node_value = self.get_cost_of_adding(second_node) + self.__get_heuristic_value()
+        first_node_value = self.get_cost_of_adding(first_node) + self.__get_heuristic_value(first_node)
+        second_node_value = self.get_cost_of_adding(second_node) + self.__get_heuristic_value(second_node)
+        # print("Comparing: \'", first_node, "\' with \'", second_node, "\' -> ", first_node_value, " vs ", second_node_value, sep="")
         return first_node_value < second_node_value
 
     def get_next_node(self) -> str:
         """Gets the next node to expand by sorting the open_list
            and picking the node with the smallest h_value and g_value in that vector."""
-        self.__open_list.sort(key=cmp_to_key(self.compare_value_h_and_g))
+        # print("Open list: ", self.__open_list)
+        # print("Comparing values of the open list (f = g + h):")
+
+        # sort the open list using the heuristic value
+        self.__open_list.sort(key=lambda node: self.get_cost_of_adding(node) + self.__get_heuristic_value(node))
+
+        # print("Sorted open list: ", self.__open_list)
         return self.__open_list.pop(0)
 
     def can_be_added(self, node:str) -> bool:
@@ -220,6 +248,15 @@ class ASTARColaBus:
         
         final_time = datetime.now()
         time_delta = final_time - initial_time
+
+        # if len(self.__state) != self.__queue_length:
+        #     raise Exception("No se ha encontrado una solución")
+        elLeft = [x for x in self.__alumnos_tuples.keys() if x not in self.__state]
+        if len(elLeft) > 0:
+            print("\nElements left: ")
+            for el in elLeft:
+                print("-", self.__alumnos_tuples[el][StudentTuple.TYPE].value)
+
         return self.get_statistics(time_delta.total_seconds() * 1000, expanded_nodes)
 
     
