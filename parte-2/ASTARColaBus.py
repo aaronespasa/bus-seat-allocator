@@ -69,7 +69,7 @@ class ASTARColaBus:
         return self.__queue_length - len(self.__state)
     
     def heuristic_weights(self, node:str) -> int:
-        """Ponderate the students that are left and sum them all."""
+        """Ponderate the students that have not been added to the queue and sum them all."""
         total_students = self.__alumnos_tuples.keys()
         # create a list that substracts the elements from self.__state from total_students
         temporal_state = [node] + [x for x in total_students if x not in self.__state]
@@ -78,13 +78,13 @@ class ASTARColaBus:
         for student_id in temporal_state:
             weight = 0
 
-            if self.__alumnos_tuples[student_id][StudentTuple.TYPE] == StudentTypes.CONFLICTIVE:
+            if   self.__alumnos_tuples[student_id][StudentTuple.TYPE] == StudentTypes.CONFLICTIVE:
                 weight = 5
             elif self.__alumnos_tuples[student_id][StudentTuple.TYPE] == StudentTypes.REDUCED_MOBILITY:
                 weight = 1
             elif self.__alumnos_tuples[student_id][StudentTuple.TYPE] == StudentTypes.CONFLICTIVE_REDUCED_MOBILITY:
                 weight = 2
-            else: # not conflictive and not reduced mobility
+            elif self.__alumnos_tuples[student_id][StudentTuple.TYPE] == StudentTypes.NORMAL:
                 weight = 3
             
             # multiply by the number of students in order to adapt the A* algorithm for longer queues
@@ -229,14 +229,12 @@ class ASTARColaBus:
         return the path from the first node to that end node.
         """
         initial_time = datetime.now()
-        expanded_nodes = 0
 
         self.__open_list.append(self.__start_node)
         while len(self.__open_list) > 0 and not self.has_finished():
             current_node = self.get_next_node()
             self.__state.append(current_node)
             self.add_neighbors(current_node)
-            expanded_nodes += 1
         
         final_time = datetime.now()
         time_delta = final_time - initial_time
@@ -249,6 +247,8 @@ class ASTARColaBus:
         #     for el in elLeft:
         #         print("-", self.__alumnos_tuples[el][StudentTuple.TYPE].value)
 
+        # count the number of values that are True in the self.__nodes dictionary
+        expanded_nodes = list(self.__nodes.values()).count(True)
         return self.get_statistics(time_delta.total_seconds() * 1000, expanded_nodes)
 
     
@@ -258,8 +258,8 @@ class ASTARColaBus:
         seat_numbers = []
         for studentid in self.__state:
             state_types.append(self.__alumnos_tuples[studentid][StudentTuple.TYPE].value)
-            seat_numbers.append(self.__alumnos_tuples[studentid][StudentTuple.SEAT_NUMBER])
-        return f"IDs in queue: {self.__state}\nTypes in queue: {state_types}\nSeat numbers: {seat_numbers}"
+            seat_numbers.append(str(self.__alumnos_tuples[studentid][StudentTuple.SEAT_NUMBER]))
+        return f"IDs in queue:   {self.__state}\nTypes in queue: {state_types}\nSeat numbers:   {seat_numbers}"
 
 if __name__ == "__main__":
     # Parse arguments and get the position of the students as a dictionary called "alumnos"
