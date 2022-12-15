@@ -64,13 +64,11 @@ class ASTARColaBus:
         self.__nodes[0] = True
         return self.__nodes[0]
 
-    def heuristic_count_queue_spaces(self, node:str) -> int:
+    def heuristic_count_queue_spaces(self, _) -> int:
         """Counts the number of empty spaces in the queue when adding a new node."""
-        # return self.__state.count(self.__empty_element) - 1
-
         return self.__queue_length - len(self.__state)
     
-    def heuristic_spaces_with_weights(self, node:str) -> int:
+    def heuristic_weights(self, node:str) -> int:
         """Ponderate the students that are left and sum them all."""
         total_students = self.__alumnos_tuples.keys()
         # create a list that substracts the elements from self.__state from total_students
@@ -78,23 +76,27 @@ class ASTARColaBus:
 
         value = 0
         for student_id in temporal_state:
-            if self.__alumnos_tuples[student_id][StudentTuple.TYPE] == StudentTypes.CONFLICTIVE:
-                    value += 5 * len(total_students)
-            elif self.__alumnos_tuples[student_id][StudentTuple.TYPE] == StudentTypes.REDUCED_MOBILITY or \
-                    self.__alumnos_tuples[student_id][StudentTuple.TYPE] == StudentTypes.CONFLICTIVE_REDUCED_MOBILITY:
-                    value += 2 
-            elif self.__alumnos_tuples[student_id][StudentTuple.TYPE] == StudentTypes.NORMAL:
-                value += 3 * len(total_students)
+            is_conflictive = self.__alumnos_tuples[student_id][StudentTuple.TYPE] == StudentTypes.CONFLICTIVE
+            weight = 0
+
+            if is_conflictive:
+                weight = 5
+            elif self.has_reduced_mobility(student_id):
+                weight = 2
+            else: # not conflictive and not reduced mobility
+                weight = 3
+            
+            # multiply by the number of students in order to adapt the A* algorith for longer queues
+            value += weight * len(total_students)
 
         return value
-
 
     def get_heuristic(self, heuristic_name:str) -> callable:
         """Gets the heuristic function to use."""
         if heuristic_name == "1":
-            return self.heuristic_count_queue_spaces
+            return self.heuristic_weights
         elif heuristic_name == "2":
-            return self.heuristic_spaces_with_weights
+            return self.heuristic_count_queue_spaces
         else:
             raise Exception("Invalid heuristic name")
 
@@ -120,16 +122,11 @@ class ASTARColaBus:
     def get_cost_of_state(self, state:list) -> int:
         """Gets the cost of the given state."""
         cost = 0
-        # conflictive_duplication = 1
         previous_had_reduced_mobility = False
 
         for i in range(len(state)):
             state_cost = 1 # normal cost
 
-            # if self.is_conflictive(state[i]):
-                # multiple duplications can be applied, that's why we multiply by 2
-                # conflictive_duplication *= 2
-            
             # if the previous student had reduced mobility, then the current student cost is 0
             if previous_had_reduced_mobility:
                 state_cost = 0
@@ -172,13 +169,7 @@ class ASTARColaBus:
     def get_next_node(self) -> str:
         """Gets the next node to expand by sorting the open_list
            and picking the node with the smallest h_value and g_value in that vector."""
-        # print("Open list: ", self.__open_list)
-        # print("Comparing values of the open list (f = g + h):")
-
-        # sort the open list using the heuristic value
         self.__open_list.sort(key=lambda node: self.get_cost_of_adding(node) + self.__get_heuristic_value(node))
-
-        # print("Sorted open list: ", self.__open_list)
         return self.__open_list.pop(0)
 
     def can_be_added(self, node:str) -> bool:
@@ -249,13 +240,13 @@ class ASTARColaBus:
         final_time = datetime.now()
         time_delta = final_time - initial_time
 
-        # if len(self.__state) != self.__queue_length:
-        #     raise Exception("No se ha encontrado una solución")
-        elLeft = [x for x in self.__alumnos_tuples.keys() if x not in self.__state]
-        if len(elLeft) > 0:
-            print("\nElements left: ")
-            for el in elLeft:
-                print("-", self.__alumnos_tuples[el][StudentTuple.TYPE].value)
+        if len(self.__state) != self.__queue_length:
+            raise Exception("No se ha encontrado una solución")
+        # elLeft = [x for x in self.__alumnos_tuples.keys() if x not in self.__state]
+        # if len(elLeft) > 0:
+        #     print("\nElements left: ")
+        #     for el in elLeft:
+        #         print("-", self.__alumnos_tuples[el][StudentTuple.TYPE].value)
 
         return self.get_statistics(time_delta.total_seconds() * 1000, expanded_nodes)
 
