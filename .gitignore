@@ -6,6 +6,7 @@ venv/
 
 # Visual Studio Code files
 .vscode/
+.idea/
 
 # PyCharm files
 .idea/

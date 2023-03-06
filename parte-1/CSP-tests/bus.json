@@ -1,0 +1,7 @@
+{
+    "capacidad": 32,
+    "asientos_fila": 4,
+    "filas_mov_red": [0,3,4],
+    "filas_curso1": [0,1,2,3],
+    "filas_curso2": [4,5,6,7]
+}
